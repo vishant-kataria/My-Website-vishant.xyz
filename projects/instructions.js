@@ -36,18 +36,18 @@ async function init() {
   const rawDriveLink = project.drive_link || "";
   const folderName = project.project_path || "my-project";
 
-  // Extract file ID from any Google Drive URL format and build direct download link
-  function getDirectDownloadUrl(url) {
+  // Extract file ID from any Google Drive URL format
+  function getDriveFileId(url) {
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-      return `https://drive.google.com/uc?export=download&confirm=t&id=${match[1]}`;
-    }
-    return url; // fallback: use as-is
+    return match ? match[1] : null;
   }
 
-  const directLink = getDirectDownloadUrl(rawDriveLink);
+  const fileId = getDriveFileId(rawDriveLink);
+  const directLink = fileId
+    ? `https://drive.usercontent.google.com/download?id=${fileId}&export=download&confirm=t`
+    : rawDriveLink;
 
-  const cmd1 = `$dir='C:\\vishants_projects\\${folderName}'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; Invoke-WebRequest -Uri '${directLink}' -OutFile "$dir\\project.zip"; Expand-Archive "$dir\\project.zip" -DestinationPath $dir -Force; Remove-Item "$dir\\project.zip"; cd $dir`;
+  const cmd1 = `$dir='C:\\vishants_projects\\${folderName}'; New-Item -ItemType Directory -Force -Path $dir | Out-Null; curl.exe -L -o "$dir\\project.zip" "${directLink}"; Expand-Archive "$dir\\project.zip" -DestinationPath $dir -Force; Remove-Item "$dir\\project.zip"; cd $dir`;
   
   document.getElementById('cmd-1').textContent = cmd1;
   document.getElementById('cmd-2').textContent = `cd C:\\vishants_projects\\${folderName}; npm install`;
