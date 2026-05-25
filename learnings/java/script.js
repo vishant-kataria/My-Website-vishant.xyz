@@ -114,7 +114,7 @@ async function initNeonDb() {
         "Neon-Connection-String": NEON_CONN
       },
       body: JSON.stringify({
-        query: "CREATE TABLE IF NOT EXISTS daycount_entries (date VARCHAR(255) PRIMARY KEY, drinks JSONB NOT NULL DEFAULT '[]', weights JSONB NOT NULL DEFAULT '[]')"
+        query: "CREATE TABLE IF NOT EXISTS daycount_entries (date DATE PRIMARY KEY, drinks JSONB NOT NULL DEFAULT '[]', weights JSONB NOT NULL DEFAULT '[]')"
       })
     });
   } catch (e) {
@@ -136,11 +136,15 @@ async function loadEntries() {
     });
     const result = await res.json();
     if (result && result.rows) {
-      entries = result.rows.map(row => ({
-        date: row.date,
-        drinks: typeof row.drinks === "string" ? JSON.parse(row.drinks) : row.drinks,
-        weights: typeof row.weights === "string" ? JSON.parse(row.weights) : row.weights
-      }));
+      entries = result.rows.map(row => {
+        const [year, month, day] = row.date.split("-");
+        const dateObj = new Date(year, month - 1, day);
+        return {
+          date: formatDate(dateObj),
+          drinks: typeof row.drinks === "string" ? JSON.parse(row.drinks) : row.drinks,
+          weights: typeof row.weights === "string" ? JSON.parse(row.weights) : row.weights
+        };
+      });
     } else {
       entries = [];
     }
@@ -154,6 +158,15 @@ async function loadEntries() {
   }
 }
 
+// Helper to convert "25 May 2026" to "2026-05-25" for SQL
+function toSqlDate(dateStr) {
+  const d = new Date(dateStr);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // --- Save entries to Neon ---
 async function saveEntries() {
   try {
@@ -163,10 +176,10 @@ async function saveEntries() {
     if (filledEntries.length > 0) {
       // Create multiple row VALUES string
       const values = filledEntries.map(e => {
-        const date = e.date.replace(/'/g, "''");
+        const sqlDate = toSqlDate(e.date);
         const drinks = JSON.stringify(e.drinks || []).replace(/'/g, "''");
         const weights = JSON.stringify(e.weights || []).replace(/'/g, "''");
-        return `('${date}', '${drinks}', '${weights}')`;
+        return `('${sqlDate}', '${drinks}', '${weights}')`;
       }).join(", ");
       
       await fetch(NEON_URL, {
@@ -181,7 +194,7 @@ async function saveEntries() {
     }
     
     if (emptyEntries.length > 0) {
-      const emptyDates = emptyEntries.map(e => `'${e.date.replace(/'/g, "''")}'`).join(",");
+      const emptyDates = emptyEntries.map(e => `'${toSqlDate(e.date)}'`).join(",");
       await fetch(NEON_URL, {
         method: "POST",
         headers: {
