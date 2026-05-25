@@ -17,8 +17,8 @@ async function loadProjects() {
 async function addProject(data) {
   try {
     await sql`
-      INSERT INTO projects (type, name, local_url, deployed_url, project_path, start_cmd)
-      VALUES (${data.type}, ${data.name}, ${data.localUrl}, ${data.deployedUrl}, ${data.projectPath}, ${data.startCmd})
+      INSERT INTO projects (type, name, local_url, deployed_url, project_path, start_cmd, drive_link)
+      VALUES (${data.type}, ${data.name}, ${data.localUrl}, ${data.deployedUrl}, ${data.projectPath}, ${data.startCmd}, ${data.driveLink})
     `;
   } catch (err) {
     console.error('Failed to add project:', err);
@@ -30,7 +30,7 @@ async function updateProject(id, data) {
     await sql`
       UPDATE projects
       SET type = ${data.type}, name = ${data.name}, local_url = ${data.localUrl},
-          deployed_url = ${data.deployedUrl}, project_path = ${data.projectPath}, start_cmd = ${data.startCmd}
+          deployed_url = ${data.deployedUrl}, project_path = ${data.projectPath}, start_cmd = ${data.startCmd}, drive_link = ${data.driveLink}
       WHERE id = ${id}
     `;
   } catch (err) {
@@ -64,6 +64,7 @@ const inputLocal = document.getElementById("input-local");
 const inputDeployed = document.getElementById("input-deployed");
 const inputPath = document.getElementById("input-path");
 const inputCmd = document.getElementById("input-cmd");
+const inputDrive = document.getElementById("input-drive");
 
 const typeToggle = document.getElementById("type-toggle");
 const localFields = document.getElementById("local-fields");
@@ -113,7 +114,7 @@ async function render() {
     row.className = "project-row";
 
     const isLocal = p.type === "local";
-    const link = isLocal ? (p.local_url || "") : (p.deployed_url || "");
+    const link = isLocal ? `local_instructions.html?id=${p.id}` : (p.deployed_url || "");
 
     if (link) {
       row.style.cursor = "pointer";
@@ -123,27 +124,14 @@ async function render() {
       });
     }
 
-    if (isLocal) {
-      row.innerHTML = `
-        <span class="row-number">${index + 1}.</span>
-        <span class="row-name">${esc(p.name)}</span>
-        <div class="row-right">
-          <button class="cmd-btn" data-copy="cd ${esc(p.project_path || "")}" title="cd ${esc(p.project_path || "")}">📂 Cmd 1</button>
-          <button class="cmd-btn" data-copy="${esc(p.start_cmd || "")}" title="${esc(p.start_cmd || "")}">▶ Cmd 2</button>
-          <button class="edit-btn" data-id="${p.id}" title="Edit">✎</button>
-          <button class="delete-btn" data-id="${p.id}" title="Delete">✕</button>
-        </div>
-      `;
-    } else {
-      row.innerHTML = `
-        <span class="row-number">${index + 1}.</span>
-        <span class="row-name">${esc(p.name)}</span>
-        <div class="row-right">
-          <button class="edit-btn" data-id="${p.id}" title="Edit">✎</button>
-          <button class="delete-btn" data-id="${p.id}" title="Delete">✕</button>
-        </div>
-      `;
-    }
+    row.innerHTML = `
+      <span class="row-number">${index + 1}.</span>
+      <span class="row-name">${esc(p.name)}</span>
+      <div class="row-right">
+        <button class="edit-btn" data-id="${p.id}" title="Edit">✎</button>
+        <button class="delete-btn" data-id="${p.id}" title="Delete">✕</button>
+      </div>
+    `;
 
     list.appendChild(row);
   });
@@ -182,6 +170,7 @@ function openModal(project) {
     inputDeployed.value = project.deployed_url || "";
     inputPath.value = project.project_path || "";
     inputCmd.value = project.start_cmd || "";
+    inputDrive.value = project.drive_link || "";
   } else {
     editingId = null;
     modalTitle.textContent = "Add Project";
@@ -223,12 +212,14 @@ form.addEventListener("submit", async (e) => {
     deployedUrl: "",
     projectPath: "",
     startCmd: "",
+    driveLink: "",
   };
 
   if (type === "local") {
     data.localUrl = inputLocal.value.trim();
     data.projectPath = inputPath.value.trim();
     data.startCmd = inputCmd.value.trim();
+    data.driveLink = inputDrive.value.trim();
   } else {
     data.deployedUrl = inputDeployed.value.trim();
   }

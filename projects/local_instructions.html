@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Project Setup | vishant.xyz</title>
+  <link rel="icon" href="../image/dailycalculator.png" type="image/x-icon">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .instructions-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px;
+      margin-top: 32px;
+    }
+    .instructions-container h2 {
+      margin-bottom: 8px;
+    }
+    .instructions-container p.subtitle {
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+    .step {
+      margin-bottom: 24px;
+    }
+    .step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 8px;
+    }
+    .step-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    .step-badge {
+      font-size: 0.75rem;
+      background: var(--surface-alt);
+      border: 1px solid var(--border-input);
+      padding: 2px 8px;
+      border-radius: 12px;
+      color: var(--text-faint);
+    }
+    .cmd-box {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .cmd-text {
+      flex: 1;
+      padding: 12px 16px;
+      font-family: monospace;
+      font-size: 0.875rem;
+      color: var(--text);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .cmd-copy-btn {
+      background: var(--surface-alt);
+      border: none;
+      border-left: 1px solid var(--border);
+      padding: 12px 16px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cmd-copy-btn:hover {
+      background: var(--border-light);
+      color: var(--text);
+    }
+    .cmd-copy-btn.copied {
+      background: var(--link);
+      color: #fff;
+    }
+    .final-action {
+      margin-top: 48px;
+      text-align: center;
+    }
+    .final-action button {
+      font-size: 1rem;
+      padding: 12px 24px;
+    }
+    
+    #loading {
+      text-align: center;
+      padding: 64px;
+      color: var(--text-faint);
+    }
+    #content {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="/projects" class="header-back">← Back to Projects</a>
+      <h1>Project Setup</h1>
+      <div class="header-actions">
+        <button id="theme-toggle" class="btn-secondary" title="Toggle theme">☀️ Light</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="loading">Loading instructions...</div>
+
+    <div id="content" class="instructions-container">
+      <h2 id="proj-name">Project Name</h2>
+      <p class="subtitle">This is a local project. You must download it to run it. Run these 3 commands in your PowerShell terminal.</p>
+
+      <div class="step">
+        <div class="step-header">
+          <span class="step-title">1. Download & Extract Code</span>
+          <span class="step-badge">One time only</span>
+        </div>
+        <div class="cmd-box">
+          <div class="cmd-text" id="cmd-1">Loading...</div>
+          <button class="cmd-copy-btn" data-target="cmd-1">Copy</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <span class="step-title">2. Install Dependencies</span>
+        </div>
+        <div class="cmd-box">
+          <div class="cmd-text" id="cmd-2">npm install</div>
+          <button class="cmd-copy-btn" data-target="cmd-2">Copy</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <span class="step-title">3. Start the Project</span>
+        </div>
+        <div class="cmd-box">
+          <div class="cmd-text" id="cmd-3">Loading...</div>
+          <button class="cmd-copy-btn" data-target="cmd-3">Copy</button>
+        </div>
+      </div>
+
+      <div class="final-action">
+        <p style="margin-bottom: 12px; color: var(--text-muted);">After running all commands successfully, click below:</p>
+        <button id="open-website-btn" class="btn-primary">Open Website</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="instructions.js"></script>
+</body>
+</html>
