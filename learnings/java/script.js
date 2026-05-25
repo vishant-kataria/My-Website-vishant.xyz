@@ -111,8 +111,7 @@ async function initNeonDb() {
     await fetch(NEON_URL, {
       method: "POST",
       headers: {
-        "Neon-Connection-String": NEON_CONN,
-        "Content-Type": "application/json",
+        "Neon-Connection-String": NEON_CONN
       },
       body: JSON.stringify({
         query: "CREATE TABLE IF NOT EXISTS app_state (id VARCHAR(255) PRIMARY KEY, data JSONB NOT NULL)"
@@ -129,8 +128,7 @@ async function loadEntries() {
     const res = await fetch(NEON_URL, {
       method: "POST",
       headers: {
-        "Neon-Connection-String": NEON_CONN,
-        "Content-Type": "application/json",
+        "Neon-Connection-String": NEON_CONN
       },
       body: JSON.stringify({
         query: "SELECT data FROM app_state WHERE id = 'default'"
@@ -163,8 +161,7 @@ async function saveEntries() {
     await fetch(NEON_URL, {
       method: "POST",
       headers: {
-        "Neon-Connection-String": NEON_CONN,
-        "Content-Type": "application/json",
+        "Neon-Connection-String": NEON_CONN
       },
       body: JSON.stringify({
         query: `INSERT INTO app_state (id, data) VALUES ('default', '${jsonStr}') ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data`
