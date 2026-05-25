@@ -157,25 +157,41 @@ async function loadEntries() {
 // --- Save entries to Neon ---
 async function saveEntries() {
   try {
-    if (entries.length === 0) return;
+    const filledEntries = entries.filter(e => (e.drinks && e.drinks.length > 0) || (e.weights && e.weights.length > 0));
+    const emptyEntries = entries.filter(e => (!e.drinks || e.drinks.length === 0) && (!e.weights || e.weights.length === 0));
     
-    // Create multiple row VALUES string
-    const values = entries.map(e => {
-      const date = e.date.replace(/'/g, "''");
-      const drinks = JSON.stringify(e.drinks || []).replace(/'/g, "''");
-      const weights = JSON.stringify(e.weights || []).replace(/'/g, "''");
-      return `('${date}', '${drinks}', '${weights}')`;
-    }).join(", ");
+    if (filledEntries.length > 0) {
+      // Create multiple row VALUES string
+      const values = filledEntries.map(e => {
+        const date = e.date.replace(/'/g, "''");
+        const drinks = JSON.stringify(e.drinks || []).replace(/'/g, "''");
+        const weights = JSON.stringify(e.weights || []).replace(/'/g, "''");
+        return `('${date}', '${drinks}', '${weights}')`;
+      }).join(", ");
+      
+      await fetch(NEON_URL, {
+        method: "POST",
+        headers: {
+          "Neon-Connection-String": NEON_CONN
+        },
+        body: JSON.stringify({
+          query: `INSERT INTO daycount_entries (date, drinks, weights) VALUES ${values} ON CONFLICT (date) DO UPDATE SET drinks = EXCLUDED.drinks, weights = EXCLUDED.weights`
+        })
+      });
+    }
     
-    await fetch(NEON_URL, {
-      method: "POST",
-      headers: {
-        "Neon-Connection-String": NEON_CONN
-      },
-      body: JSON.stringify({
-        query: `INSERT INTO daycount_entries (date, drinks, weights) VALUES ${values} ON CONFLICT (date) DO UPDATE SET drinks = EXCLUDED.drinks, weights = EXCLUDED.weights`
-      })
-    });
+    if (emptyEntries.length > 0) {
+      const emptyDates = emptyEntries.map(e => `'${e.date.replace(/'/g, "''")}'`).join(",");
+      await fetch(NEON_URL, {
+        method: "POST",
+        headers: {
+          "Neon-Connection-String": NEON_CONN
+        },
+        body: JSON.stringify({
+          query: `DELETE FROM daycount_entries WHERE date IN (${emptyDates})`
+        })
+      });
+    }
   } catch (err) {
     console.error("Error saving to Neon:", err);
   }
