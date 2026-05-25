@@ -114,7 +114,7 @@ async function initNeonDb() {
         "Neon-Connection-String": NEON_CONN
       },
       body: JSON.stringify({
-        query: "CREATE TABLE IF NOT EXISTS app_state (id VARCHAR(255) PRIMARY KEY, data JSONB NOT NULL)"
+        query: "CREATE TABLE IF NOT EXISTS daycount_entries (date VARCHAR(255) PRIMARY KEY, drinks JSONB NOT NULL DEFAULT '[]', weights JSONB NOT NULL DEFAULT '[]')"
       })
     });
   } catch (e) {
@@ -131,14 +131,16 @@ async function loadEntries() {
         "Neon-Connection-String": NEON_CONN
       },
       body: JSON.stringify({
-        query: "SELECT data FROM app_state WHERE id = 'default'"
+        query: "SELECT * FROM daycount_entries"
       })
     });
     const result = await res.json();
-    if (result && result.rows && result.rows.length > 0) {
-      const rowData = result.rows[0].data;
-      const parsedData = typeof rowData === "string" ? JSON.parse(rowData) : rowData;
-      entries = parsedData.waterList || [];
+    if (result && result.rows) {
+      entries = result.rows.map(row => ({
+        date: row.date,
+        drinks: typeof row.drinks === "string" ? JSON.parse(row.drinks) : row.drinks,
+        weights: typeof row.weights === "string" ? JSON.parse(row.weights) : row.weights
+      }));
     } else {
       entries = [];
     }
@@ -155,8 +157,15 @@ async function loadEntries() {
 // --- Save entries to Neon ---
 async function saveEntries() {
   try {
-    const dataObj = { waterList: entries };
-    const jsonStr = JSON.stringify(dataObj).replace(/'/g, "''");
+    if (entries.length === 0) return;
+    
+    // Create multiple row VALUES string
+    const values = entries.map(e => {
+      const date = e.date.replace(/'/g, "''");
+      const drinks = JSON.stringify(e.drinks || []).replace(/'/g, "''");
+      const weights = JSON.stringify(e.weights || []).replace(/'/g, "''");
+      return `('${date}', '${drinks}', '${weights}')`;
+    }).join(", ");
     
     await fetch(NEON_URL, {
       method: "POST",
@@ -164,7 +173,7 @@ async function saveEntries() {
         "Neon-Connection-String": NEON_CONN
       },
       body: JSON.stringify({
-        query: `INSERT INTO app_state (id, data) VALUES ('default', '${jsonStr}') ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data`
+        query: `INSERT INTO daycount_entries (date, drinks, weights) VALUES ${values} ON CONFLICT (date) DO UPDATE SET drinks = EXCLUDED.drinks, weights = EXCLUDED.weights`
       })
     });
   } catch (err) {
