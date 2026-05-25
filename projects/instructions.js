@@ -48,7 +48,7 @@ async function init() {
     : rawDriveLink;
 
   const cmd1 = `$dir='C:\\vishants_projects\\${folderName}'; $tmp="$dir\\_tmp"; New-Item -ItemType Directory -Force -Path $tmp | Out-Null; curl.exe -L -o "$tmp\\project.zip" "${directLink}"; Expand-Archive "$tmp\\project.zip" -DestinationPath $tmp -Force; $inner=Get-ChildItem $tmp -Directory | Select-Object -First 1; if($inner){ Move-Item "$($inner.FullName)\\*" $dir -Force }; Remove-Item $tmp -Recurse -Force; cd $dir`;
-  const cmd2 = `cd C:\\vishants_projects\\${folderName}; if(-not(Get-Command npm -ErrorAction SilentlyContinue)){ Write-Host 'npm not found, installing Node.js...' -ForegroundColor Yellow; winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements; $env:PATH=[System.Environment]::GetEnvironmentVariable('PATH','Machine')+';'+[System.Environment]::GetEnvironmentVariable('PATH','User') }; npm install`;
+  const cmd2 = `cd C:\\vishants_projects\\${folderName}; Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; if(-not(Get-Command npm -ErrorAction SilentlyContinue)){ Write-Host 'npm not found, installing Node.js...' -ForegroundColor Yellow; winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements; $env:PATH=[System.Environment]::GetEnvironmentVariable('PATH','Machine')+';'+[System.Environment]::GetEnvironmentVariable('PATH','User') }; npm install`;
   const cmd3 = `cd C:\\vishants_projects\\${folderName}; ${project.start_cmd || "npm start"}`;
 
   // Pill click → copy
