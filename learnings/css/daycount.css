@@ -275,3 +275,39 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
 }
+
+/* Scroll to bottom button */
+#scroll-to-bottom-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 0.8em 1.5em;
+  font-size: 1.1em;
+  font-family: inherit;
+  background: linear-gradient(90deg, #1976d2 60%, #00bcd4 100%);
+  color: #fff;
+  border: none;
+  border-radius: 1.5em;
+  box-shadow: 0 4px 18px rgba(25, 118, 210, 0.3);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  letter-spacing: 0.03em;
+  font-weight: bold;
+  z-index: 1000;
+}
+#scroll-to-bottom-btn:hover,
+#scroll-to-bottom-btn:focus {
+  background: linear-gradient(90deg, #125ea2 60%, #0097a7 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 24px rgba(25, 118, 210, 0.4);
+  outline: none;
+}
+
+@media (max-width: 700px) {
+  #scroll-to-bottom-btn {
+    bottom: 20px;
+    right: 20px;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+  }
+}
